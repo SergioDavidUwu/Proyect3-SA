@@ -152,3 +152,175 @@
         }
       },
       //Codigo_Alan
+      "WebServerSG": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "GroupDescription": "Allow access from HTTP and SSH traffic",
+          "SecurityGroupIngress": [
+            {
+              "IpProtocol": "tcp",
+              "FromPort": "80",
+              "ToPort": "80",
+              "CidrIp": "0.0.0.0/0"
+            },
+            {
+              "IpProtocol": "tcp",
+              "FromPort": "22",
+              "ToPort": "22",
+              "CidrIp": {
+                "Ref": "SSHLocation"
+              }
+            }
+          ]
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "78191ea4-d03b-4545-8661-f086ad75ec7f"
+          }
+        }
+      },
+      "InternetGateway": {
+        "Type": "AWS::EC2::InternetGateway",
+        "Properties": {},
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "447e6525-2e58-4e13-8a1e-c208eded04eb"
+          }
+        }
+      },
+      "EC2VPCG1LRG1": {
+        "Type": "AWS::EC2::VPCGatewayAttachment",
+        "Properties": {
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "InternetGatewayId": {
+            "Ref": "InternetGateway"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "b568c607-10fe-485b-80ca-dfbeca54710a"
+          }
+        }
+      },
+      "PublicRouteTable": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": {
+            "Ref": "VPC"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "a9cc8c0b-41a9-4e9a-be62-c9c5dd0d9263"
+          }
+        }
+      },
+      "PublicRoute": {
+        "Type": "AWS::EC2::Route",
+        "Properties": {
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "RouteTableId": {
+            "Ref": "PublicRouteTable"
+          },
+          "InstanceId": {
+            "Ref": "webServer"
+          },
+          "GatewayId": {
+            "Ref": "InternetGateway"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "a03af88a-ab50-40c7-a4cd-0a5bc85e4b07"
+          }
+        },
+        "DependsOn": ["EC2VPCG1LRG1"]
+      },
+      "EC2SRTA2CTSW": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "RouteTableId": {
+            "Ref": "PublicRouteTable"
+          },
+          "SubnetId": {
+            "Ref": "PublicSubnet"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "bcd8ab0a-0735-4d0e-b604-cb91eaf161e9"
+          }
+        }
+      },
+      "AutoScaling": {
+        "Type": "AWS::AutoScaling::AutoScalingGroup",
+        "Properties": {
+          "InstanceId": {
+            "Ref": "webServer"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "66297ad4-1f7e-4b40-804a-6c1dd6559c56"
+          }
+        }
+      },
+      "RDSDB": {
+        "Type": "AWS::RDS::DBInstance",
+        "Properties": {},
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "2275e413-fc93-47e1-8411-4c848987a339"
+          }
+        },
+        "DependsOn": ["PublicSubnet", "webServer", "EDSSG"]
+      },
+      "PrivateSubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "VpcId": {
+            "Ref": "VPC"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "6fd19639-4d5d-40db-85c7-353555ac78b4"
+          }
+        }
+      },
+      "EDSSG": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "GroupDescription": "Allow access from HTTP and SSH traffic",
+          "SecurityGroupIngress": [
+            {
+              "IpProtocol": "tcp",
+              "FromPort": "3306",
+              "ToPort": "3306",
+              "CidrIp": "0.0.0.0/0"
+            },
+            {
+              "IpProtocol": "tcp",
+              "FromPort": "22",
+              "ToPort": "22",
+              "CidrIp": {
+                "Ref": "SSHLocation"
+              }
+            }
+          ]
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "d5f098e0-5f1a-44a7-8d17-eb478d96f93e"
+          }
+        }
+      },
+      //continuacion cheko
