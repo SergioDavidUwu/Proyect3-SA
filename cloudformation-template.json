@@ -24,3 +24,131 @@
         }
       },
       //codigo cheko
+      "VPC": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "EnableDnsSupport": "true",
+          "EnableDnsHostnames": "true",
+          "CidrBlock": "10.0.0.0/16"
+        }
+      },
+      "webServer": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+          "InstanceType": {
+            "Ref": "InstanceType"
+          },
+          "ImageId": {
+            "Fn::FindInMap": [
+              "AWSRegionArch2AMI",
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Fn::FindInMap": [
+                  "AWSInstanceType2Arch",
+                  {
+                    "Ref": "InstanceType"
+                  },
+                  "Arch"
+                ]
+              }
+            ]
+          },
+          "KeyName": {
+            "Ref": "KeyName"
+          },
+          "NetworkInterfaces": [
+            {
+              "GroupSet": [
+                {
+                  "Ref": "WebServerSG"
+                }
+              ],
+              "AssociatePublicIpAddress": "true",
+              "DeviceIndex": "0",
+              "DeleteOnTermination": "true",
+              "SubnetId": {
+                "Ref": "PublicSubnet"
+              }
+            }
+          ],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Join": [
+                "",
+                [
+                  "#!/bin/bash -xe\n",
+                  "yum install -y aws-cfn-bootstrap\n",
+                  "# Install the files and packages from the metadata\n",
+                  "/opt/aws/bin/cfn-init -v ",
+                  "         --stack ",
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "         --resource webServer ",
+                  "         --configsets All ",
+                  "         --region ",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "\n",
+                  "# Signal the status from cfn-init\n",
+                  "/opt/aws/bin/cfn-signal -e $? ",
+                  "         --stack ",
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "         --resource webServer ",
+                  "         --region ",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "\n"
+                ]
+              ]
+            }
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "5f6d66c6-36e9-4bd5-af72-ca4dcf4a96b2"
+          },
+          "AWS::CloudFormation::Init": {
+            "configSets": {
+              "All": ["ConfigureSampleApp"]
+            },
+            "ConfigureSampleApp": {
+              "packages": {
+                "yum": {
+                  "httpd": []
+                }
+              },
+              "files": {
+                "/var/www/html/index.html": {
+                  "content": {
+                    "Fn::Join": [
+                      "\n",
+                      [
+                        "<h1>Congratulations, you have successfully launched the AWS CloudFormation sample.</h1>"
+                      ]
+                    ]
+                  },
+                  "mode": "000644",
+                  "owner": "root",
+                  "group": "root"
+                }
+              },
+              "services": {
+                "sysvinit": {
+                  "httpd": {
+                    "enabled": "true",
+                    "ensureRunning": "true"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      //Codigo_Alan
